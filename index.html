@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học Vui Lớp 2 - Bé Thông Minh</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Nunito -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Nunito', sans-serif; }
+        .bounce-hover:hover { transform: translateY(-3px); transition: all 0.2s; }
+    </style>
+</head>
+<body class="bg-amber-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-indigo-600 text-white shadow-md p-4 sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div onclick="goHome()" class="flex items-center space-x-2 cursor-pointer">
+                <span class="text-3xl">🎒</span>
+                <h1 class="text-2xl font-extrabold tracking-wide">Học Vui Lớp 2</h1>
+            </div>
+            <div class="flex items-center bg-amber-400 text-amber-900 font-bold px-4 py-1.5 rounded-full shadow-inner">
+                <span class="text-xl mr-1">⭐</span> <span id="score-display">0</span> điểm
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-4xl mx-auto p-4 flex-grow w-full">
+
+        <!-- MÀN HÌNH CHÍNH: CHỌN MÔN HỌC -->
+        <div id="home-screen" class="space-y-6">
+            <div class="text-center py-6 bg-gradient-to-r from-pink-400 to-purple-500 rounded-3xl text-white shadow-lg p-6">
+                <h2 class="text-3xl font-extrabold mb-2">Chào bé yêu! 🌟</h2>
+                <p class="text-lg opacity-95">Hôm nay bé muốn học môn gì nào?</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                <!-- Môn Toán -->
+                <div onclick="startSubject('math')" class="bg-white border-4 border-sky-300 rounded-3xl p-6 text-center cursor-pointer bounce-hover shadow-md">
+                    <div class="text-6xl mb-3">📐</div>
+                    <h3 class="text-2xl font-bold text-sky-600 mb-1">Môn Toán</h3>
+                    <p class="text-slate-500 text-sm">Cộng trừ, bảng nhân chia & toán đố vui</p>
+                </div>
+
+                <!-- Môn Tiếng Việt -->
+                <div onclick="startSubject('vietnamese')" class="bg-white border-4 border-emerald-300 rounded-3xl p-6 text-center cursor-pointer bounce-hover shadow-md">
+                    <div class="text-6xl mb-3">📖</div>
+                    <h3 class="text-2xl font-bold text-emerald-600 mb-1">Tiếng Việt</h3>
+                    <p class="text-slate-500 text-sm">Luyện chính tả s/x, tr/ch & điền từ</p>
+                </div>
+
+                <!-- Môn Tiếng Anh -->
+                <div onclick="startSubject('english')" class="bg-white border-4 border-orange-300 rounded-3xl p-6 text-center cursor-pointer bounce-hover shadow-md">
+                    <div class="text-6xl mb-3">🎨</div>
+                    <h3 class="text-2xl font-bold text-orange-600 mb-1">Tiếng Anh</h3>
+                    <p class="text-slate-500 text-sm">Từ vựng màu sắc, con vật & phát âm</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- MÀN HÌNH NỘI DUNG HỌC -->
+        <div id="learning-screen" class="hidden space-y-4">
+            <button onclick="goHome()" class="bg-white border-2 border-slate-300 px-4 py-2 rounded-xl font-bold text-slate-600 hover:bg-slate-100 flex items-center space-x-1">
+                <span>⬅️</span> <span>Quay lại chọn môn</span>
+            </button>
+
+            <div id="quiz-container" class="bg-white rounded-3xl shadow-lg p-6 border-4 border-indigo-100">
+                <!-- Nội dung câu hỏi sẽ được render bằng Javascript -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-4 text-slate-500 text-sm">
+        <p>Thiết kế dành riêng cho học sinh Lớp 2 ❤️ Chúc bé chăm ngoan, học giỏi!</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        let score = parseInt(localStorage.getItem('kid_score')) || 0;
+        document.getElementById('score-display').innerText = score;
+
+        function updateScore(points) {
+            score += points;
+            document.getElementById('score-display').innerText = score;
+            localStorage.setItem('kid_score', score);
+        }
+
+        function goHome() {
+            document.getElementById('home-screen').classList.remove('hidden');
+            document.getElementById('learning-screen').classList.add('hidden');
+        }
+
+        function startSubject(subject) {
+            document.getElementById('home-screen').classList.add('hidden');
+            document.getElementById('learning-screen').classList.remove('hidden');
+            
+            if (subject === 'math') loadMathQuiz();
+            else if (subject === 'vietnamese') loadVietnameseQuiz();
+            else if (subject === 'english') loadEnglishQuiz();
+        }
+
+        // ==================== MÔN TOÁN ====================
+        function loadMathQuiz() {
+            const container = document.getElementById('quiz-container');
+            
+            // Tạo phép tính ngẫu nhiên
+            const num1 = Math.floor(Math.random() * 50) + 10;
+            const num2 = Math.floor(Math.random() * 40) + 1;
+            const isAdd = Math.random() > 0.5;
+            const operator = isAdd ? '+' : '-';
+            const correctAnswer = isAdd ? (num1 + num2) : (num1 - num2);
+
+            // Tạo các đáp án nhiễu
+            let options = [correctAnswer];
+            while (options.length < 4) {
+                let wrong = correctAnswer + (Math.floor(Math.random() * 10) - 5);
+                if (wrong >= 0 && !options.includes(wrong)) {
+                    options.push(wrong);
+                }
+            }
+            options.sort(() => Math.random() - 0.5);
+
+            container.innerHTML = `
+                <div class="text-center">
+                    <span class="bg-sky-100 text-sky-700 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">Thử thách Toán Học</span>
+                    <h3 class="text-4xl font-extrabold text-slate-700 my-6">${num1} ${operator} ${num2} = ?</h3>
+                    
+                    <div class="grid grid-cols-2 gap-4 max-w-md mx-auto">
+                        ${options.map(opt => `
+                            <button onclick="checkAnswer(${opt},${correctAnswer}, loadMathQuiz)" class="bg-sky-500 hover:bg-sky-600 text-white text-2xl font-bold py-4 rounded-2xl shadow-md transition transform active:scale-95">
+                                ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==================== MÔN TIẾNG VIỆT ====================
+        const vietnameseQuestions = [
+            { question: "Điền chữ thích hợp vào chỗ trống: 'Cây ...ê'", options: ["s", "x"], correct: "s", hint: "Cây sa kê" },
+            { question: "Điền chữ thích hợp vào chỗ trống: 'Con ...úc cắc'", options: ["tr", "ch"], correct: "tr", hint: "Con trúc cắc" },
+            { question: "Từ nào viết đúng chính tả?", options: ["sạch sẽ", "sạch sễ"], correct: "sạch sẽ" },
+            { question: "Tìm từ chỉ tính nết của học sinh?", options: ["Chăm chỉ", "Bàn ghế", "Cái bút"], correct: "Chăm chỉ" },
+            { question: "Điền chữ thích hợp: 'Màu ...ắng'", options: ["tr", "ch"], correct: "tr", hint: "Màu trắng" }
+        ];
+
+        let currentViIndex = 0;
+        function loadVietnameseQuiz() {
+            const container = document.getElementById('quiz-container');
+            const q = vietnameseQuestions[currentViIndex];
+
+            container.innerHTML = `
+                <div class="text-center">
+                    <span class="bg-emerald-100 text-emerald-700 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">Luyện Tiếng Việt (Câu ${currentViIndex + 1}/${vietnameseQuestions.length})</span>
+                    <h3 class="text-2xl font-bold text-slate-700 my-6">${q.question}</h3>
+                    
+                    <div class="flex justify-center gap-4">
+                        ${q.options.map(opt => `
+                            <button onclick="checkAnswerWithNext('${opt}', '${q.correct}', nextVietnameseQuestion)" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xl font-bold px-8 py-4 rounded-2xl shadow-md transition transform active:scale-95 min-w-[120px]">
+                                ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function nextVietnameseQuestion() {
+            currentViIndex = (currentViIndex + 1) % vietnameseQuestions.length;
+            loadVietnameseQuiz();
+        }
+
+        // ==================== MÔN TIẾNG ANH ====================
+        const englishWords = [
+            { word: "Apple", meaning: "Quả táo", emoji: "🍎" },
+            { word: "Cat", meaning: "Con mèo", emoji: "🐱" },
+            { word: "Dog", meaning: "Con chó", emoji: "🐶" },
+            { word: "Sun", meaning: "Mặt trời", emoji: "☀️" },
+            { word: "Book", meaning: "Quyển sách", emoji: "📚" }
+        ];
+
+        let currentEnIndex = 0;
+        function loadEnglishQuiz() {
+            const container = document.getElementById('quiz-container');
+            const item = englishWords[currentEnIndex];
+
+            container.innerHTML = `
+                <div class="text-center">
+                    <span class="bg-orange-100 text-orange-700 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">Từ vựng Tiếng Anh (${currentEnIndex + 1}/${englishWords.length})</span>
+                    <div class="text-8xl my-6">${item.emoji}</div>
+                    <h3 class="text-4xl font-extrabold text-orange-600 mb-2">${item.word}</h3>
+                    <p class="text-xl text-slate-500 mb-6">Nghĩa tiếng Việt: <strong class="text-slate-700">${item.meaning}</strong></p>
+                    
+                    <div class="flex justify-center gap-4">
+                        <button onclick="speakWord('${item.word}')" class="bg-sky-500 hover:bg-sky-600 text-white font-bold px-6 py-3 rounded-2xl shadow-md flex items-center gap-2">
+                            🔊 Nghe đọc
+                        </button>
+                        <button onclick="nextEnglishWord()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-2xl shadow-md">
+                            Từ tiếp theo ➡️
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function speakWord(word) {
+            const utterance = new SpeechSynthesisUtterance(word);
+            utterance.lang = 'en-US';
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function nextEnglishWord() {
+            currentEnIndex = (currentEnIndex + 1) + 0;
+            if (currentEnIndex >= englishWords.length) currentEnIndex = 0;
+            loadEnglishQuiz();
+        }
+
+        // ==================== KIỂM TRA ĐÁP ÁN ====================
+        function checkAnswer(selected, correct, callback) {
+            if (selected === correct) {
+                updateScore(1);
+                showFeedback(true, callback);
+            } else {
+                showFeedback(false, callback);
+            }
+        }
+
+        function checkAnswerWithNext(selected, correct, callback) {
+            if (selected === correct) {
+                updateScore(1);
+                showFeedback(true, callback);
+            } else {
+                showFeedback(false, callback);
+            }
+        }
+
+        function showFeedback(isCorrect, callback) {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = `
+                <div class="text-center py-8">
+                    <div class="text-7xl mb-4">${isCorrect ? '🎉' : '❌'}</div>
+                    <h3 class="text-3xl font-extrabold ${isCorrect ? 'text-emerald-600' : 'text-rose-500'} mb-2">
+                        ${isCorrect ? 'Chính xác! Bé giỏi quá!' : 'Chưa đúng rồi, thử lại nhé!'}
+                    </h3>
+                    <p class="text-slate-500 mb-6">${isCorrect ? '+1 Điểm thưởng ⭐' : 'Cố lên bé ơi!'}</p>
+                    <button onclick="(${callback.name})()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-3 rounded-2xl shadow-md">
+                        Tiếp tục học 🚀
+                    </button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

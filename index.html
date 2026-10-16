@@ -145,7 +145,6 @@
   </div>
 
   <!-- MODALS -->
-  <!-- MODAL SỔ TAY CÂU SAI -->
   <div id="mistakeModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border-4 border-purple-400">
       <div class="flex justify-between items-center mb-3">
@@ -200,9 +199,9 @@
   </footer>
 
   <script>
-    // ==========================================
-    // 1. ÂM THANH, NHẠC NỀN & GIỌNG ĐỌC AI (TTS)
-    // ==========================================
+    // URL Google Apps Script của bạn (Thay thế chuỗi này bằng URL thực tế nếu muốn đồng bộ Google Sheet)
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWZcqAP_RG1RDtHJ-3aLYIBZXA-tBbcVAbfP1hbNxggLJ3EE8vH5Pj-XcnKgrgifYwOw/exec"; 
+
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let audioCtx = null;
     let isMusicPlaying = false;
@@ -284,9 +283,6 @@
       }
     }
 
-    // ==========================================
-    // 2. NGÂN HÀNG CÂU HỎI LỚP 2 CHUẨN LOCAL
-    // ==========================================
     const VOCAB_TV = {
       ch_tr: [ {w:'con chó', ans:'ch'}, {w:'cây tre', ans:'tr'}, {w:'chiều tối', ans:'ch'}, {w:'trường học', ans:'tr'} ]
     };
@@ -327,9 +323,6 @@
       return qList;
     }
 
-    // ==========================================
-    // 3. TRẠNG THÁI & LƯU TRỮ (LOCALSTORAGE)
-    // ==========================================
     let defaultState = {
       lastName: '', middleName: '', firstName: '', studentName: '',
       stars: 0, coins: 0, equippedHat: '', inventory: [], petEnergy: 100,
@@ -361,6 +354,22 @@
 
     function saveData() {
       localStorage.setItem('grade2_gh_pages', JSON.stringify(state));
+      syncDataToGoogleSheet();
+    }
+
+    function syncDataToGoogleSheet() {
+      if (!SCRIPT_URL || !state.studentName) return;
+      const payload = {
+        studentName: state.studentName,
+        coins: state.coins,
+        stars: state.stars
+      };
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }).catch(err => console.error("Lỗi đồng bộ:", err));
     }
 
     function checkNameRequired() {
@@ -406,9 +415,6 @@
       document.getElementById('mistakeCountText').innerText = (state.mistakes || []).length;
     }
 
-    // ==========================================
-    // 4. TÍNH NĂNG ĐIỂM DANH & SỔ CÂU SAI
-    // ==========================================
     function claimDailyReward() {
       const today = new Date().toDateString();
       if (state.lastCheckin === today) {
@@ -445,9 +451,6 @@
       saveData(); updateUI(); openMistakeNotebook();
     }
 
-    // ==========================================
-    // 5. QUẢN LÝ BÀI HỌC & CÂU HỎI
-    // ==========================================
     function showTable(num) {
       const box = document.getElementById('multiplicationTableBox');
       let html = `<div class="text-center font-bold text-amber-900 border-b pb-1 mb-1">Bảng cửu chương ${num}</div>`;
@@ -574,7 +577,6 @@
       `;
     }
 
-    // CỬA HÀNG, NUÔI PET, TRÒ CHƠI
     function openPetCareModal() { document.getElementById('petModal').classList.remove('hidden'); }
     function closePetCareModal() { document.getElementById('petModal').classList.add('hidden'); }
     function feedPet(type, cost) {

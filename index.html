@@ -1,261 +1,606 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Học Vui Lớp 2 - Bé Thông Minh</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Nunito -->
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Nunito', sans-serif; }
-        .bounce-hover:hover { transform: translateY(-3px); transition: all 0.2s; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Hành Trình Tri Thức Lớp 2 - Minh Hải</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    body { 
+      font-family: 'Fredoka', cursive, sans-serif; 
+      touch-action: manipulation; 
+    }
+    canvas { touch-action: none; }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #fef3c7; }
+    ::-webkit-scrollbar-thumb { background: #f59e0b; border-radius: 4px; }
+  </style>
 </head>
-<body class="bg-amber-50 text-slate-800 min-h-screen flex flex-col">
+<body class="bg-amber-50 text-slate-800 min-h-screen flex flex-col font-sans select-none pb-12">
 
-    <!-- Header -->
-    <header class="bg-indigo-600 text-white shadow-md p-4 sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <div onclick="goHome()" class="flex items-center space-x-2 cursor-pointer">
-                <span class="text-3xl">🎒</span>
-                <h1 class="text-2xl font-extrabold tracking-wide">Học Vui Lớp 2</h1>
-            </div>
-            <div class="flex items-center bg-amber-400 text-amber-900 font-bold px-4 py-1.5 rounded-full shadow-inner">
-                <span class="text-xl mr-1">⭐</span> <span id="score-display">0</span> điểm
-            </div>
+  <!-- Modal Đăng Nhập / Nhập Tên -->
+  <div id="nameModal" class="fixed inset-0 bg-amber-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border-4 border-amber-400 text-center relative">
+      <div class="text-6xl mb-3 animate-bounce">🐝</div>
+      <h2 class="text-2xl sm:text-3xl font-bold text-amber-900 mb-1">Chào Bé Đến Với Lớp Học!</h2>
+      <p class="text-xs sm:text-sm text-amber-700 mb-4 font-medium">Nhập tên của bé để bắt đầu hành trình học vui nhé!</p>
+      
+      <div class="space-y-3 mb-4">
+        <input type="text" id="studentLastNameInput" placeholder="Họ (Ví dụ: Nguyễn)" class="w-full text-center px-4 py-2.5 rounded-2xl border-2 border-amber-300 focus:border-amber-500 font-bold text-amber-900 text-lg shadow-inner">
+        <input type="text" id="studentMiddleNameInput" placeholder="Tên đệm (Ví dụ: Văn)" class="w-full text-center px-4 py-2.5 rounded-2xl border-2 border-amber-300 focus:border-amber-500 font-bold text-amber-900 text-lg shadow-inner">
+        <input type="text" id="studentFirstNameInput" placeholder="Tên (Ví dụ: An)" class="w-full text-center px-4 py-2.5 rounded-2xl border-2 border-amber-300 focus:border-amber-500 font-bold text-amber-900 text-lg shadow-inner">
+      </div>
+
+      <button onclick="saveStudentName()" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-lg font-bold py-3.5 rounded-2xl shadow-lg hover:scale-105 transition active:scale-95">
+        Vào Học Ngay ✨
+      </button>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 p-3 shadow-lg sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+      
+      <div class="flex items-center justify-between w-full sm:w-auto">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="goHome()">
+          <span class="text-3xl sm:text-4xl animate-bounce">🐝</span>
+          <div>
+            <h1 class="text-xl sm:text-2xl font-bold text-amber-950 leading-none">Học Vui Lớp 2</h1>
+            <p class="text-xs text-amber-900 font-medium">
+              Học sinh: <span id="displayName" class="font-bold underline">Bé</span>
+              <button onclick="logoutStudent()" class="ml-2 bg-red-500 hover:bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold shadow transition">
+                🚪 Đổi Tên
+              </button>
+            </p>
+          </div>
         </div>
-    </header>
+        <button onclick="toggleMusic()" id="musicBtn" class="sm:hidden bg-white/80 text-amber-900 text-sm px-3 py-1.5 rounded-full font-bold shadow">
+          🔇 Nhạc
+        </button>
+      </div>
 
-    <!-- Main Container -->
-    <main class="max-w-4xl mx-auto p-4 flex-grow w-full">
+      <!-- Tiện ích Header -->
+      <div class="flex flex-wrap items-center justify-between sm:justify-end w-full sm:w-auto gap-1.5">
+        <button onclick="claimDailyReward()" class="bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs px-2.5 py-1.5 rounded-full font-bold shadow flex items-center gap-1 animate-pulse">
+          🎁 Điểm Danh
+        </button>
 
-        <!-- MÀN HÌNH CHÍNH: CHỌN MÔN HỌC -->
-        <div id="home-screen" class="space-y-6">
-            <div class="text-center py-6 bg-gradient-to-r from-pink-400 to-purple-500 rounded-3xl text-white shadow-lg p-6">
-                <h2 class="text-3xl font-extrabold mb-2">Chào bé yêu! 🌟</h2>
-                <p class="text-lg opacity-95">Hôm nay bé muốn học môn gì nào?</p>
-            </div>
+        <button onclick="openMistakeNotebook()" class="bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs px-2.5 py-1.5 rounded-full font-bold shadow flex items-center gap-1">
+          📕 Sổ Câu Sai (<span id="mistakeCountText">0</span>)
+        </button>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-                <!-- Môn Toán -->
-                <div onclick="startSubject('math')" class="bg-white border-4 border-sky-300 rounded-3xl p-6 text-center cursor-pointer bounce-hover shadow-md">
-                    <div class="text-6xl mb-3">📐</div>
-                    <h3 class="text-2xl font-bold text-sky-600 mb-1">Môn Toán</h3>
-                    <p class="text-slate-500 text-sm">Cộng trừ, bảng nhân chia & toán đố vui</p>
-                </div>
-
-                <!-- Môn Tiếng Việt -->
-                <div onclick="startSubject('vietnamese')" class="bg-white border-4 border-emerald-300 rounded-3xl p-6 text-center cursor-pointer bounce-hover shadow-md">
-                    <div class="text-6xl mb-3">📖</div>
-                    <h3 class="text-2xl font-bold text-emerald-600 mb-1">Tiếng Việt</h3>
-                    <p class="text-slate-500 text-sm">Luyện chính tả s/x, tr/ch & điền từ</p>
-                </div>
-
-                <!-- Môn Tiếng Anh -->
-                <div onclick="startSubject('english')" class="bg-white border-4 border-orange-300 rounded-3xl p-6 text-center cursor-pointer bounce-hover shadow-md">
-                    <div class="text-6xl mb-3">🎨</div>
-                    <h3 class="text-2xl font-bold text-orange-600 mb-1">Tiếng Anh</h3>
-                    <p class="text-slate-500 text-sm">Từ vựng màu sắc, con vật & phát âm</p>
-                </div>
-            </div>
+        <div class="flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-inner border border-amber-200">
+          <div class="flex items-center gap-1">
+            <span class="text-lg">⭐</span>
+            <span id="starCount" class="font-bold text-amber-600 text-xs sm:text-sm">0</span>
+          </div>
+          <div class="flex items-center gap-1 border-l pl-2 border-amber-200">
+            <span class="text-lg">🪙</span>
+            <span id="coinCount" class="font-bold text-yellow-600 text-xs sm:text-sm">0 Xu</span>
+          </div>
+          <button onclick="openPetCareModal()" class="bg-gradient-to-r from-pink-500 to-rose-500 text-white px-2 py-0.5 rounded-full shadow text-xs font-bold">
+            💖 <span id="petEnergyText">100%</span>
+          </button>
+          <button onclick="openShop()" class="bg-amber-500 text-white p-1 rounded-full shadow text-xs">
+            🛍️
+          </button>
         </div>
+      </div>
 
-        <!-- MÀN HÌNH NỘI DUNG HỌC -->
-        <div id="learning-screen" class="hidden space-y-4">
-            <button onclick="goHome()" class="bg-white border-2 border-slate-300 px-4 py-2 rounded-xl font-bold text-slate-600 hover:bg-slate-100 flex items-center space-x-1">
-                <span>⬅️</span> <span>Quay lại chọn môn</span>
-            </button>
+    </div>
+  </header>
 
-            <div id="quiz-container" class="bg-white rounded-3xl shadow-lg p-6 border-4 border-indigo-100">
-                <!-- Nội dung câu hỏi sẽ được render bằng Javascript -->
-            </div>
-        </div>
+  <!-- MAIN LAYOUT -->
+  <div class="max-w-7xl mx-auto w-full px-2 sm:px-4 mt-4 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-4">
+    
+    <!-- CỘT TRÁI: BẢNG CỬU CHƯƠNG -->
+    <aside class="lg:col-span-3 bg-white p-4 rounded-3xl border-2 border-amber-200 shadow-sm h-fit">
+      <h3 class="font-bold text-amber-900 text-base mb-3 flex items-center gap-2">
+        <span>🔢</span> Bảng Cửu Chương Lớp 2
+      </h3>
+      <div class="flex gap-1.5 mb-3">
+        <button onclick="showTable(2)" class="flex-1 bg-amber-100 hover:bg-amber-300 font-bold text-sm py-1.5 rounded-xl">x2</button>
+        <button onclick="showTable(3)" class="flex-1 bg-amber-100 hover:bg-amber-300 font-bold text-sm py-1.5 rounded-xl">x3</button>
+        <button onclick="showTable(4)" class="flex-1 bg-amber-100 hover:bg-amber-300 font-bold text-sm py-1.5 rounded-xl">x4</button>
+        <button onclick="showTable(5)" class="flex-1 bg-amber-100 hover:bg-amber-300 font-bold text-sm py-1.5 rounded-xl">x5</button>
+      </div>
+      <div id="multiplicationTableBox" class="bg-amber-50 p-3 rounded-2xl border border-amber-200 text-sm font-bold text-amber-950 space-y-1">
+      </div>
+    </aside>
 
+    <!-- CỘT GIỮA: NỘI DUNG CHÍNH -->
+    <main id="appContainer" class="lg:col-span-6 flex flex-col">
     </main>
 
-    <!-- Footer -->
-    <footer class="text-center py-4 text-slate-500 text-sm">
-        <p>Thiết kế dành riêng cho học sinh Lớp 2 ❤️ Chúc bé chăm ngoan, học giỏi!</p>
-    </footer>
+    <!-- CỘT PHẢI: GIA ĐÌNH & TRÒ CHƠI -->
+    <aside class="lg:col-span-3 space-y-4">
+      <div class="bg-white p-3.5 rounded-3xl border-2 border-pink-200 shadow-sm text-center">
+        <h4 class="font-bold text-pink-900 text-sm mb-2">💖 Lời Khuyên Cho Bé</h4>
+        <div class="rounded-2xl overflow-hidden border border-pink-100 bg-pink-50 mb-2">
+          <img src="https://png.pngtree.com/png-clipart/20250308/original/pngtree-happy-family-with-parents-and-kids-cute-cartoon-illustration-of-love-png-image_20602346.png" class="w-full h-32 object-cover">
+        </div>
+        <p class="text-xs font-semibold text-pink-800 italic">"Chăm chỉ học tập mỗi ngày để nhận quà và đạt điểm cao bé nhé!"</p>
+      </div>
 
-    <!-- JavaScript Logic -->
-    <script>
-        let score = parseInt(localStorage.getItem('kid_score')) || 0;
-        document.getElementById('score-display').innerText = score;
+      <div class="bg-white p-3.5 rounded-3xl border-2 border-indigo-200 shadow-sm">
+        <h4 class="font-bold text-indigo-900 text-sm mb-2.5">🎮 Trò Chơi Giải Trí</h4>
+        <div class="space-y-2">
+          <button onclick="startMemoryGame()" class="w-full bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 p-2 rounded-2xl flex items-center gap-3 text-left">
+            <span class="text-2xl">🃏</span>
+            <span class="font-bold text-indigo-950 text-xs">Lật Thẻ Ghi Nhớ</span>
+          </button>
+          <button onclick="startTracingMode()" class="w-full bg-purple-50 hover:bg-purple-100 border border-purple-200 p-2 rounded-2xl flex items-center gap-3 text-left">
+            <span class="text-2xl">✍️</span>
+            <span class="font-bold text-purple-950 text-xs">Tập Viết Chữ & Số</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+  </div>
 
-        function updateScore(points) {
-            score += points;
-            document.getElementById('score-display').innerText = score;
-            localStorage.setItem('kid_score', score);
+  <!-- MODALS -->
+  <!-- MODAL SỔ TAY CÂU SAI -->
+  <div id="mistakeModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border-4 border-purple-400">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-xl font-bold text-purple-900">📕 Sổ Tay Câu Sai</h2>
+        <button onclick="closeMistakeNotebook()" class="text-gray-400 font-bold text-2xl">&times;</button>
+      </div>
+      <div id="mistakeContent" class="space-y-3 max-h-80 overflow-y-auto p-1"></div>
+    </div>
+  </div>
+
+  <div id="petModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border-4 border-pink-400 text-center">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xl font-bold text-pink-700">💖 Nuôi Ong Bibo</h2>
+        <button onclick="closePetCareModal()" class="text-gray-400 font-bold text-2xl">&times;</button>
+      </div>
+      <div class="my-4">
+        <div class="text-6xl animate-bounce mb-2">🐝</div>
+        <div class="w-full bg-gray-200 h-4 rounded-full overflow-hidden border">
+          <div id="petEnergyBar" class="bg-pink-500 h-full" style="width: 100%;"></div>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-2 mt-4">
+        <button onclick="feedPet('apple', 5)" class="bg-red-50 p-3 rounded-2xl border flex flex-col items-center">
+          <span class="text-2xl">🍎</span>
+          <span class="text-xs font-bold text-red-700 mt-1">Táo (5 Xu)</span>
+        </button>
+        <button onclick="feedPet('juice', 8)" class="bg-orange-50 p-3 rounded-2xl border flex flex-col items-center">
+          <span class="text-2xl">🧃</span>
+          <span class="text-xs font-bold text-orange-700 mt-1">Nước (8 Xu)</span>
+        </button>
+        <button onclick="feedPet('sleep', 0)" class="bg-indigo-50 p-3 rounded-2xl border flex flex-col items-center">
+          <span class="text-2xl">💤</span>
+          <span class="text-xs font-bold text-indigo-700 mt-1">Ngủ (Miễn phí)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="shopModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border-4 border-amber-400">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-xl font-bold text-amber-800">🛍️ Cửa Hàng Bibo</h2>
+        <button onclick="closeShop()" class="text-gray-400 font-bold text-2xl">&times;</button>
+      </div>
+      <div id="shopItemList" class="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <footer class="mt-auto py-3 text-center text-xs font-semibold text-amber-800/80 bg-amber-200/50 border-t">
+    © Phát triển dành riêng cho Học sinh Lớp 2
+  </footer>
+
+  <script>
+    // ==========================================
+    // 1. ÂM THANH, NHẠC NỀN & GIỌNG ĐỌC AI (TTS)
+    // ==========================================
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    let isMusicPlaying = false;
+    let musicInterval = null;
+
+    function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); }
+
+    function startMusicAutomatically() {
+      initAudio();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (!isMusicPlaying) { isMusicPlaying = true; updateMusicUI(); playBackgroundMusic(); }
+    }
+
+    function toggleMusic() {
+      initAudio();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      isMusicPlaying = !isMusicPlaying;
+      updateMusicUI();
+      if (isMusicPlaying) playBackgroundMusic();
+      else if (musicInterval) clearInterval(musicInterval);
+    }
+
+    function updateMusicUI() {
+      const btn = document.getElementById('musicBtn');
+      if (btn) btn.innerHTML = isMusicPlaying ? '🔊 Tắt Nhạc' : '🔇 Nhạc';
+    }
+
+    function playBackgroundMusic() {
+      if (musicInterval) clearInterval(musicInterval);
+      const notes = [261.63, 329.63, 392.00, 523.25, 440.00, 349.23, 329.63, 293.66];
+      let noteIndex = 0;
+      musicInterval = setInterval(() => {
+        if (!isMusicPlaying) return;
+        try {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(notes[noteIndex % notes.length], audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
+          osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.8);
+          noteIndex++;
+        } catch (e) {}
+      }, 900);
+    }
+
+    function playSound(type) {
+      try {
+        initAudio();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+        
+        if (type === 'correct') {
+          osc.type = 'triangle'; osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2);
+          gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+          osc.start(now); osc.stop(now + 0.3);
+        } else if (type === 'wrong') {
+          osc.type = 'sawtooth'; osc.frequency.setValueAtTime(220, now);
+          osc.frequency.linearRampToValueAtTime(150, now + 0.2);
+          gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+          osc.start(now); osc.stop(now + 0.3);
         }
+      } catch (e) {}
+    }
 
-        function goHome() {
-            document.getElementById('home-screen').classList.remove('hidden');
-            document.getElementById('learning-screen').classList.add('hidden');
+    function speakText(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const cleanMsg = text.replace(/\[.*?\]/g, '');
+        const utterance = new SpeechSynthesisUtterance(cleanMsg);
+        utterance.lang = 'vi-VN';
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    // ==========================================
+    // 2. NGÂN HÀNG CÂU HỎI LỚP 2 CHUẨN LOCAL
+    // ==========================================
+    const VOCAB_TV = {
+      ch_tr: [ {w:'con chó', ans:'ch'}, {w:'cây tre', ans:'tr'}, {w:'chiều tối', ans:'ch'}, {w:'trường học', ans:'tr'} ]
+    };
+    const VOCAB_TA = {
+      colors: [ {en:'Red', vi:'Màu đỏ'}, {en:'Blue', vi:'Màu xanh dương'}, {en:'Yellow', vi:'Màu vàng'} ]
+    };
+    const VOCAB_TNXH = {
+      co_quan: [ {q:'Cơ quan nào giúp em nghe âm thanh?', a:'Tai'}, {q:'Cơ quan nào dùng để nhìn?', a:'Mắt'} ]
+    };
+
+    function shuffle(array) { return array.sort(() => Math.random() - 0.5); }
+    function randChoice(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    function generateLocalQuestions(category, level) {
+      const qList = [];
+      for (let i = 0; i < 5; i++) {
+        let qText = '', ans = '', opts = [];
+        if (category === 'math') {
+          const a = Math.floor(Math.random() * (level * 5)) + 1;
+          const b = Math.floor(Math.random() * (level * 4)) + 1;
+          ans = String(a + b); qText = `${a} + ${b} = ?`;
+          let valAns = parseInt(ans);
+          opts = [ans, String(valAns + 2), String(valAns > 2 ? valAns - 2 : valAns + 5), String(valAns + 10)];
+        } else if (category === 'vietnamese') {
+          const item = randChoice(VOCAB_TV.ch_tr);
+          qText = `Điền "ch" hay "tr" vào chỗ trống: ${item.w.replace(item.ans, '...')}`;
+          ans = item.ans; opts = ['ch', 'tr', 'x', 's'];
+        } else if (category === 'english') {
+          const item = randChoice(VOCAB_TA.colors);
+          qText = `Từ "${item.en}" có nghĩa là gì?`;
+          ans = item.vi; opts = [ans, 'Màu Đen', 'Màu Trắng', 'Màu Tím'];
+        } else {
+          const item = randChoice(VOCAB_TNXH.co_quan);
+          qText = item.q; ans = item.a; opts = [ans, 'Không biết', 'Bỏ qua', 'Khác'];
         }
+        qList.push({ q: `[Mức ${level}] ${qText}`, options: shuffle([...new Set(opts)]), a: ans });
+      }
+      return qList;
+    }
 
-        function startSubject(subject) {
-            document.getElementById('home-screen').classList.add('hidden');
-            document.getElementById('learning-screen').classList.remove('hidden');
-            
-            if (subject === 'math') loadMathQuiz();
-            else if (subject === 'vietnamese') loadVietnameseQuiz();
-            else if (subject === 'english') loadEnglishQuiz();
+    // ==========================================
+    // 3. TRẠNG THÁI & LƯU TRỮ (LOCALSTORAGE)
+    // ==========================================
+    let defaultState = {
+      lastName: '', middleName: '', firstName: '', studentName: '',
+      stars: 0, coins: 0, equippedHat: '', inventory: [], petEnergy: 100,
+      progress: { math: 1, vietnamese: 1, english: 1, science: 1, ethics: 1, pe: 1, arts: 1, experience: 1 },
+      mistakes: [],
+      lastCheckin: ''
+    };
+    let state = JSON.parse(JSON.stringify(defaultState));
+
+    const shopItems = [
+      { id: 'hat_grad', name: 'Mũ Cử Nhân', icon: '🎓', price: 20 },
+      { id: 'hat_crown', name: 'Vương Miện', icon: '👑', price: 30 }
+    ];
+
+    window.onload = function() {
+      loadUserData();
+      checkNameRequired();
+      showTable(2);
+      updateUI();
+      goHome();
+    };
+
+    function loadUserData() {
+      const saved = localStorage.getItem('grade2_gh_pages');
+      if (saved) {
+        try { state = { ...state, ...JSON.parse(saved) }; } catch (e) {}
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem('grade2_gh_pages', JSON.stringify(state));
+    }
+
+    function checkNameRequired() {
+      if (!state.firstName) {
+        document.getElementById('nameModal').classList.remove('hidden');
+      } else {
+        document.getElementById('nameModal').classList.add('hidden');
+        document.getElementById('displayName').innerText = state.studentName;
+      }
+    }
+
+    function saveStudentName() {
+      const lastName = document.getElementById('studentLastNameInput').value.trim();
+      const middleName = document.getElementById('studentMiddleNameInput').value.trim();
+      const firstName = document.getElementById('studentFirstNameInput').value.trim();
+
+      if (!firstName) { alert("Vui lòng nhập Tên của bé!"); return; }
+
+      state.lastName = lastName; 
+      state.middleName = middleName; 
+      state.firstName = firstName;
+      state.studentName = [lastName, middleName, firstName].filter(Boolean).join(" ");
+      
+      saveData(); 
+      checkNameRequired(); 
+      updateUI(); 
+      startMusicAutomatically();
+    }
+
+    function logoutStudent() {
+      if (confirm("Bạn có muốn đổi tên học sinh khác không?")) {
+        localStorage.removeItem('grade2_gh_pages');
+        state = JSON.parse(JSON.stringify(defaultState));
+        updateUI(); 
+        checkNameRequired();
+      }
+    }
+
+    function updateUI() {
+      document.getElementById('starCount').innerText = state.stars;
+      document.getElementById('coinCount').innerText = `${state.coins} Xu`;
+      document.getElementById('petEnergyText').innerText = `${state.petEnergy}%`;
+      document.getElementById('mistakeCountText').innerText = (state.mistakes || []).length;
+    }
+
+    // ==========================================
+    // 4. TÍNH NĂNG ĐIỂM DANH & SỔ CÂU SAI
+    // ==========================================
+    function claimDailyReward() {
+      const today = new Date().toDateString();
+      if (state.lastCheckin === today) {
+        alert("Hôm nay bé đã nhận thưởng điểm danh rồi! Hãy quay lại vào ngày mai nhé! ✨");
+        return;
+      }
+      state.coins += 10;
+      state.lastCheckin = today;
+      saveData(); updateUI();
+      playSound('correct');
+      if (window.confetti) confetti({ particleCount: 50, spread: 60 });
+      alert("🎁 Nhận thành công 10 Xu điểm danh ngày mới! Cùng học tập thật ngoan nhé!");
+    }
+
+    function openMistakeNotebook() {
+      document.getElementById('mistakeModal').classList.remove('hidden');
+      const box = document.getElementById('mistakeContent');
+      const mistakes = state.mistakes || [];
+      if (mistakes.length === 0) {
+        box.innerHTML = `<p class="text-center text-emerald-600 font-bold py-6">🎉 Bé chưa có câu trả lời sai nào! Thật xuất sắc!</p>`;
+        return;
+      }
+      box.innerHTML = mistakes.map((item, idx) => `
+        <div class="bg-purple-50 p-3.5 rounded-2xl border border-purple-200">
+          <div class="font-bold text-purple-900 text-sm mb-1">${item.q}</div>
+          <div class="text-xs text-green-700 font-bold">Đáp án đúng: ${item.a}</div>
+          <button onclick="removeMistake(${idx})" class="mt-2 text-[10px] bg-purple-200 hover:bg-purple-300 text-purple-800 font-bold px-2.5 py-1 rounded-lg">Đã thuộc (Xóa)</button>
+        </div>
+      `).join('');
+    }
+    function closeMistakeNotebook() { document.getElementById('mistakeModal').classList.add('hidden'); }
+    function removeMistake(index) {
+      state.mistakes.splice(index, 1);
+      saveData(); updateUI(); openMistakeNotebook();
+    }
+
+    // ==========================================
+    // 5. QUẢN LÝ BÀI HỌC & CÂU HỎI
+    // ==========================================
+    function showTable(num) {
+      const box = document.getElementById('multiplicationTableBox');
+      let html = `<div class="text-center font-bold text-amber-900 border-b pb-1 mb-1">Bảng cửu chương ${num}</div>`;
+      for (let i = 1; i <= 10; i++) {
+        html += `<div class="flex justify-between"><span>${num} × ${i}</span><span>= ${num * i}</span></div>`;
+      }
+      box.innerHTML = html;
+    }
+
+    const categoryNames = {
+      math: 'Toán Học', vietnamese: 'Tiếng Việt', english: 'Tiếng Anh', science: 'Tự Nhiên & Xã Hội',
+      ethics: 'Đạo Đức', pe: 'Thể Chất', arts: 'Nghệ Thuật', experience: 'Trải Nghiệm'
+    };
+
+    function goHome() {
+      const app = document.getElementById('appContainer');
+      app.innerHTML = `
+        <div class="bg-gradient-to-r from-amber-300 to-yellow-400 p-4 rounded-3xl mb-4 border-2 border-amber-500 shadow-md">
+          <h2 class="font-bold text-lg text-amber-950">🗺️ Chọn Môn Học Lớp 2</h2>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          ${Object.keys(categoryNames).map(catKey => `
+            <div onclick="selectLevel('${catKey}')" class="bg-gradient-to-br from-amber-500 to-orange-600 text-white p-4 rounded-3xl shadow-lg cursor-pointer hover:scale-105 transition">
+              <h3 class="font-bold text-base sm:text-lg">${categoryNames[catKey]}</h3>
+              <p class="text-xs opacity-90">Mức: ${state.progress[catKey] || 1}/10</p>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function selectLevel(catKey) {
+      const app = document.getElementById('appContainer');
+      const unlockedLevel = state.progress[catKey] || 1;
+      let levelsHTML = '';
+      for (let lvl = 1; lvl <= 10; lvl++) {
+        const isUnlocked = lvl <= unlockedLevel;
+        levelsHTML += isUnlocked ? `
+          <button onclick="startLevel('${catKey}', ${lvl})" class="bg-amber-100 hover:bg-amber-300 border-2 border-amber-400 p-3 rounded-2xl font-bold text-amber-950 text-xs sm:text-sm flex justify-between items-center shadow-sm">
+            <span>Mức ${lvl}</span><span>⭐</span>
+          </button>` : `
+          <button disabled class="bg-gray-100 border p-3 rounded-2xl font-bold text-gray-400 text-xs sm:text-sm flex justify-between items-center opacity-60">
+            <span>Mức ${lvl}</span><span>🔒</span>
+          </button>`;
+      }
+      app.innerHTML = `
+        <div class="bg-white rounded-3xl p-5 border-2 border-amber-300 shadow-md">
+          <div class="flex justify-between items-center mb-3 border-b pb-2">
+            <h3 class="font-bold text-amber-900 text-base uppercase">${categoryNames[catKey]}</h3>
+            <button onclick="goHome()" class="text-xs bg-gray-100 text-gray-600 font-bold px-3 py-1 rounded-xl">Quay lại</button>
+          </div>
+          <div class="grid grid-cols-2 gap-2">${levelsHTML}</div>
+        </div>
+      `;
+    }
+
+    let currentQuestions = [];
+    let currentQIndex = 0;
+    let currentCategory = '';
+    let currentLevel = 1;
+
+    function startLevel(catKey, level) {
+      currentCategory = catKey; currentLevel = level; currentQIndex = 0;
+      currentQuestions = generateLocalQuestions(catKey, level);
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      if (currentQIndex >= currentQuestions.length) { finishLevel(); return; }
+      const q = currentQuestions[currentQIndex];
+      const app = document.getElementById('appContainer');
+
+      speakText(q.q);
+
+      app.innerHTML = `
+        <div class="bg-white rounded-3xl p-5 border-2 border-amber-200 shadow-md">
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-xs font-bold text-amber-800 bg-amber-100 px-3 py-1 rounded-full">Câu ${currentQIndex + 1} / ${currentQuestions.length}</span>
+            <button onclick="speakText('${q.q.replace(/'/g, "\\'")}')" class="bg-amber-200 hover:bg-amber-300 text-amber-900 text-xs px-2.5 py-1 rounded-full font-bold flex items-center gap-1">
+              🔊 Đọc lại
+            </button>
+          </div>
+          <h3 class="text-base sm:text-lg font-bold text-amber-950 mb-4">${q.q}</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            ${q.options.map(opt => `
+              <button onclick="checkAnswer('${opt.replace(/'/g, "\\'")}', '${q.a.replace(/'/g, "\\'")}', '${q.q.replace(/'/g, "\\'")}')" class="bg-amber-50 hover:bg-amber-200 border-2 border-amber-300 font-bold text-amber-950 p-3 rounded-2xl text-left text-sm transition shadow-sm">
+                ${opt}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function checkAnswer(selected, correct, questionText) {
+      if (selected === correct) {
+        playSound('correct'); state.stars += 1; state.coins += 2; saveData(); updateUI();
+        if (window.confetti) confetti({ particleCount: 25, spread: 50 });
+        currentQIndex++; renderQuestion();
+      } else {
+        playSound('wrong');
+        if (!state.mistakes) state.mistakes = [];
+        if (!state.mistakes.some(m => m.q === questionText)) {
+          state.mistakes.push({ q: questionText, a: correct });
+          saveData(); updateUI();
         }
+        alert("Chưa đúng rồi bé ơi! Câu hỏi đã được tự động lưu vào Sổ Tay Câu Sai để bé ôn lại nhé!");
+      }
+    }
 
-        // ==================== MÔN TOÁN ====================
-        function loadMathQuiz() {
-            const container = document.getElementById('quiz-container');
-            
-            // Tạo phép tính ngẫu nhiên
-            const num1 = Math.floor(Math.random() * 50) + 10;
-            const num2 = Math.floor(Math.random() * 40) + 1;
-            const isAdd = Math.random() > 0.5;
-            const operator = isAdd ? '+' : '-';
-            const correctAnswer = isAdd ? (num1 + num2) : (num1 - num2);
+    function finishLevel() {
+      playSound('correct');
+      if (window.confetti) confetti({ particleCount: 80, spread: 70 });
+      if (currentLevel === state.progress[currentCategory] && state.progress[currentCategory] < 10) {
+        state.progress[currentCategory] += 1; saveData();
+      }
+      const app = document.getElementById('appContainer');
+      app.innerHTML = `
+        <div class="bg-white rounded-3xl p-6 text-center border-2 border-amber-300 shadow-md">
+          <div class="text-5xl mb-2">🎉</div>
+          <h2 class="text-2xl font-bold text-amber-900 mb-2">Hoàn Thành Mức ${currentLevel}!</h2>
+          <button onclick="selectLevel('${currentCategory}')" class="bg-amber-500 text-white font-bold px-6 py-2 rounded-2xl shadow-lg mt-3">Tiếp Tục</button>
+        </div>
+      `;
+    }
 
-            // Tạo các đáp án nhiễu
-            let options = [correctAnswer];
-            while (options.length < 4) {
-                let wrong = correctAnswer + (Math.floor(Math.random() * 10) - 5);
-                if (wrong >= 0 && !options.includes(wrong)) {
-                    options.push(wrong);
-                }
-            }
-            options.sort(() => Math.random() - 0.5);
-
-            container.innerHTML = `
-                <div class="text-center">
-                    <span class="bg-sky-100 text-sky-700 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">Thử thách Toán Học</span>
-                    <h3 class="text-4xl font-extrabold text-slate-700 my-6">${num1} ${operator} ${num2} = ?</h3>
-                    
-                    <div class="grid grid-cols-2 gap-4 max-w-md mx-auto">
-                        ${options.map(opt => `
-                            <button onclick="checkAnswer(${opt},${correctAnswer}, loadMathQuiz)" class="bg-sky-500 hover:bg-sky-600 text-white text-2xl font-bold py-4 rounded-2xl shadow-md transition transform active:scale-95">
-                                ${opt}
-                            </button>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        // ==================== MÔN TIẾNG VIỆT ====================
-        const vietnameseQuestions = [
-            { question: "Điền chữ thích hợp vào chỗ trống: 'Cây ...ê'", options: ["s", "x"], correct: "s", hint: "Cây sa kê" },
-            { question: "Điền chữ thích hợp vào chỗ trống: 'Con ...úc cắc'", options: ["tr", "ch"], correct: "tr", hint: "Con trúc cắc" },
-            { question: "Từ nào viết đúng chính tả?", options: ["sạch sẽ", "sạch sễ"], correct: "sạch sẽ" },
-            { question: "Tìm từ chỉ tính nết của học sinh?", options: ["Chăm chỉ", "Bàn ghế", "Cái bút"], correct: "Chăm chỉ" },
-            { question: "Điền chữ thích hợp: 'Màu ...ắng'", options: ["tr", "ch"], correct: "tr", hint: "Màu trắng" }
-        ];
-
-        let currentViIndex = 0;
-        function loadVietnameseQuiz() {
-            const container = document.getElementById('quiz-container');
-            const q = vietnameseQuestions[currentViIndex];
-
-            container.innerHTML = `
-                <div class="text-center">
-                    <span class="bg-emerald-100 text-emerald-700 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">Luyện Tiếng Việt (Câu ${currentViIndex + 1}/${vietnameseQuestions.length})</span>
-                    <h3 class="text-2xl font-bold text-slate-700 my-6">${q.question}</h3>
-                    
-                    <div class="flex justify-center gap-4">
-                        ${q.options.map(opt => `
-                            <button onclick="checkAnswerWithNext('${opt}', '${q.correct}', nextVietnameseQuestion)" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xl font-bold px-8 py-4 rounded-2xl shadow-md transition transform active:scale-95 min-w-[120px]">
-                                ${opt}
-                            </button>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        function nextVietnameseQuestion() {
-            currentViIndex = (currentViIndex + 1) % vietnameseQuestions.length;
-            loadVietnameseQuiz();
-        }
-
-        // ==================== MÔN TIẾNG ANH ====================
-        const englishWords = [
-            { word: "Apple", meaning: "Quả táo", emoji: "🍎" },
-            { word: "Cat", meaning: "Con mèo", emoji: "🐱" },
-            { word: "Dog", meaning: "Con chó", emoji: "🐶" },
-            { word: "Sun", meaning: "Mặt trời", emoji: "☀️" },
-            { word: "Book", meaning: "Quyển sách", emoji: "📚" }
-        ];
-
-        let currentEnIndex = 0;
-        function loadEnglishQuiz() {
-            const container = document.getElementById('quiz-container');
-            const item = englishWords[currentEnIndex];
-
-            container.innerHTML = `
-                <div class="text-center">
-                    <span class="bg-orange-100 text-orange-700 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">Từ vựng Tiếng Anh (${currentEnIndex + 1}/${englishWords.length})</span>
-                    <div class="text-8xl my-6">${item.emoji}</div>
-                    <h3 class="text-4xl font-extrabold text-orange-600 mb-2">${item.word}</h3>
-                    <p class="text-xl text-slate-500 mb-6">Nghĩa tiếng Việt: <strong class="text-slate-700">${item.meaning}</strong></p>
-                    
-                    <div class="flex justify-center gap-4">
-                        <button onclick="speakWord('${item.word}')" class="bg-sky-500 hover:bg-sky-600 text-white font-bold px-6 py-3 rounded-2xl shadow-md flex items-center gap-2">
-                            🔊 Nghe đọc
-                        </button>
-                        <button onclick="nextEnglishWord()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-2xl shadow-md">
-                            Từ tiếp theo ➡️
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        function speakWord(word) {
-            const utterance = new SpeechSynthesisUtterance(word);
-            utterance.lang = 'en-US';
-            window.speechSynthesis.speak(utterance);
-        }
-
-        function nextEnglishWord() {
-            currentEnIndex = (currentEnIndex + 1) + 0;
-            if (currentEnIndex >= englishWords.length) currentEnIndex = 0;
-            loadEnglishQuiz();
-        }
-
-        // ==================== KIỂM TRA ĐÁP ÁN ====================
-        function checkAnswer(selected, correct, callback) {
-            if (selected === correct) {
-                updateScore(1);
-                showFeedback(true, callback);
-            } else {
-                showFeedback(false, callback);
-            }
-        }
-
-        function checkAnswerWithNext(selected, correct, callback) {
-            if (selected === correct) {
-                updateScore(1);
-                showFeedback(true, callback);
-            } else {
-                showFeedback(false, callback);
-            }
-        }
-
-        function showFeedback(isCorrect, callback) {
-            const container = document.getElementById('quiz-container');
-            container.innerHTML = `
-                <div class="text-center py-8">
-                    <div class="text-7xl mb-4">${isCorrect ? '🎉' : '❌'}</div>
-                    <h3 class="text-3xl font-extrabold ${isCorrect ? 'text-emerald-600' : 'text-rose-500'} mb-2">
-                        ${isCorrect ? 'Chính xác! Bé giỏi quá!' : 'Chưa đúng rồi, thử lại nhé!'}
-                    </h3>
-                    <p class="text-slate-500 mb-6">${isCorrect ? '+1 Điểm thưởng ⭐' : 'Cố lên bé ơi!'}</p>
-                    <button onclick="(${callback.name})()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-3 rounded-2xl shadow-md">
-                        Tiếp tục học 🚀
-                    </button>
-                </div>
-            `;
-        }
-    </script>
+    // CỬA HÀNG, NUÔI PET, TRÒ CHƠI
+    function openPetCareModal() { document.getElementById('petModal').classList.remove('hidden'); }
+    function closePetCareModal() { document.getElementById('petModal').classList.add('hidden'); }
+    function feedPet(type, cost) {
+      if (state.coins < cost) { alert("Không đủ Xu!"); return; }
+      state.coins -= cost; state.petEnergy = Math.min(100, state.petEnergy + 25);
+      saveData(); updateUI(); playSound('correct');
+    }
+    function openShop() {
+      const list = document.getElementById('shopItemList');
+      list.innerHTML = shopItems.map(item => `
+        <div class="bg-amber-50 p-3 border rounded-2xl flex flex-col items-center">
+          <div class="text-3xl mb-1">${item.icon}</div>
+          <div class="text-xs font-bold text-amber-900">${item.name}</div>
+          <div class="text-xs text-yellow-600 mb-2 font-bold">${item.price} Xu</div>
+          <button onclick="buyShopItem('${item.id}', ${item.price})" class="bg-green-500 text-white text-xs px-3 py-1 rounded-xl font-bold">Mua/Dùng</button>
+        </div>
+      `).join('');
+      document.getElementById('shopModal').classList.remove('hidden');
+    }
+    function closeShop() { document.getElementById('shopModal').classList.add('hidden'); }
+    function buyShopItem(id, price) {
+      if (state.coins >= price) { state.coins -= price; state.equippedHat = id; saveData(); updateUI(); playSound('correct'); alert("Đã mua thành công!"); }
+      else { alert("Không đủ Xu!"); }
+    }
+    function startMemoryGame() { alert("Trò chơi lật thẻ đang được cập nhật thêm!"); }
+    function startTracingMode() { alert("Chức năng tập viết đang được cập nhật thêm!"); }
+  </script>
 </body>
 </html>

@@ -199,7 +199,7 @@
   </footer>
 
   <script>
-    // URL Google Apps Script của bạn (Thay thế chuỗi này bằng URL thực tế nếu muốn đồng bộ Google Sheet)
+    // 👇 DÁN URL GOOGLE APPS SCRIPT VÀO ĐÂY (VÍ DỤ: "https://script.google.com/macros/s/.../exec")
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWZcqAP_RG1RDtHJ-3aLYIBZXA-tBbcVAbfP1hbNxggLJ3EE8vH5Pj-XcnKgrgifYwOw/exec"; 
 
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -358,18 +358,22 @@
     }
 
     function syncDataToGoogleSheet() {
-      if (!SCRIPT_URL || !state.studentName) return;
+      if (!SCRIPT_URL || SCRIPT_URL.includes("DÁN_URL") || !state.studentName) return;
+      
       const payload = {
         studentName: state.studentName,
         coins: state.coins,
         stars: state.stars
       };
+
       fetch(SCRIPT_URL, {
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
-      }).catch(err => console.error("Lỗi đồng bộ:", err));
+      })
+      .then(() => console.log("Đã gửi dữ liệu lên Google Sheet!"))
+      .catch(err => console.error("Lỗi đồng bộ:", err));
     }
 
     function checkNameRequired() {

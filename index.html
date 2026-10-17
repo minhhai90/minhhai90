@@ -357,24 +357,30 @@
       syncDataToGoogleSheet();
     }
 
-    function syncDataToGoogleSheet() {
-      if (!SCRIPT_URL || SCRIPT_URL.includes("DÁN_URL") || !state.studentName) return;
-      
-      const payload = {
-        studentName: state.studentName,
-        coins: state.coins,
-        stars: state.stars
-      };
+    // Thay URL vừa copy ở Bước 1 vào đây
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWZcqAP_RG1RDtHJ-3aLYIBZXA-tBbcVAbfP1hbNxggLJ3EE8vH5Pj-XcnKgrgifYwOw/exec"; 
 
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      })
-      .then(() => console.log("Đã gửi dữ liệu lên Google Sheet!"))
-      .catch(err => console.error("Lỗi đồng bộ:", err));
-    }
+function syncDataToGoogleSheet() {
+  if (!SCRIPT_URL || SCRIPT_URL.includes("DÁN_URL") || !state.studentName) return;
+  
+  const payload = {
+    studentName: state.studentName,
+    coins: state.coins,
+    stars: state.stars
+  };
+
+  // Dùng text/plain để vượt qua rào cản CORS của Google Apps Script khi chạy trên GitHub Pages
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { 
+      "Content-Type": "text/plain;charset=utf-8" 
+    },
+    body: JSON.stringify(payload)
+  })
+  .then(() => console.log("Đã phát lệnh gửi dữ liệu sang Google Sheet!"))
+  .catch(err => console.error("Lỗi gửi dữ liệu:", err));
+}
 
     function checkNameRequired() {
       if (!state.firstName) {

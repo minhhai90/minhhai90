@@ -378,48 +378,62 @@
       syncDataToGoogleSheet();
     }
 
-    // HÀM ĐỒNG BỘ CẬP NHẬT 1 DÒNG TRÊN GOOGLE SHEET QUA SHEETDB
-    function syncDataToGoogleSheet() {
-      if (!SHEETDB_API_URL || SHEETDB_API_URL.includes("DÁN_API") || !state.studentName) return;
+    // Đường link API SheetDB của bạn
+const SHEETDB_API_URL = "https://sheetdb.io/api/v1/njcjob2p6nos6"; 
 
-      const payloadData = {
-        studentName: state.studentName,
-        coins: state.coins,
-        stars: state.stars,
-        petEnergy: state.petEnergy,
-        equippedHat: state.equippedHat || 'Chưa có',
-        mistakesCount: (state.mistakes || []).length,
-        lastCheckin: state.lastCheckin || 'Chưa điểm danh'
-      };
+function syncDataToGoogleSheet() {
+  if (!SHEETDB_API_URL || SHEETDB_API_URL.includes("DÁN_API") || !state.studentName) return;
 
-      // Thử dùng PATCH để cập nhật dòng có sẵn của học sinh
-      const updateUrl = `${SHEETDB_API_URL}/studentName/${encodeURIComponent(state.studentName)}`;
+  const payloadData = {
+    studentName: state.studentName,
+    coins: state.coins,
+    stars: state.stars,
+    petEnergy: state.petEnergy,
+    equippedHat: state.equippedHat || 'Chưa có',
+    mistakesCount: (state.mistakes || []).length,
+    lastCheckin: state.lastCheckin || 'Chưa điểm danh'
+  };
 
-      fetch(updateUrl, {
-        method: "PATCH",
+  // Bước 1: Thử Cập Nhật dòng có sẵn (PATCH)
+  const updateUrl = `${SHEETDB_API_URL}/studentName/${encodeURIComponent(state.studentName)}`;
+
+  fetch(updateUrl, {
+    method: "PATCH",
+    headers: {
+      "Accept": "application/json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ data: payloadData })
+  })
+  .then(res => res.json())
+  .then(resData => {
+    // Nếu chưa có dòng học sinh này (updated == 0 hoặc bị lỗi), tự động gửi POST để tạo mới
+    if (!resData || resData.updated === 0 || resData.error) {
+      return fetch(SHEETDB_API_URL, {
+        method: "POST",
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ data: payloadData })
-      })
-      .then(res => res.json())
-      .then(resData => {
-        // Nếu dòng chưa tồn tại (updated: 0), gửi POST để tạo dòng mới
-        if (resData.updated === 0) {
-          fetch(SHEETDB_API_URL, {
-            method: "POST",
-            headers: {
-              "Accept": "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ data: [payloadData] })
-          });
-        }
-        showToast();
-      })
-      .catch(err => console.error("Lỗi đồng bộ:", err));
+        body: JSON.stringify({ data: [payloadData] })
+      });
     }
+  })
+  .then(() => {
+    showToast();
+  })
+  .catch(err => {
+    // Nếu PATCH bị lỗi do chưa có cột, gửi thẳng POST
+    fetch(SHEETDB_API_URL, {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ data: [payloadData] })
+    }).then(() => showToast());
+  });
+}
 
     function showToast() {
       const toast = document.getElementById('syncToast');

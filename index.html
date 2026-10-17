@@ -382,7 +382,7 @@
 const SHEETDB_API_URL = "https://sheetdb.io/api/v1/njcjob2p6nos6"; 
 
 function syncDataToGoogleSheet() {
-  if (!SHEETDB_API_URL || SHEETDB_API_URL.includes("DÁN_API") || !state.studentName) return;
+  if (!SHEETDB_API_URL || !state.studentName) return;
 
   const payloadData = {
     studentName: state.studentName,
@@ -394,45 +394,21 @@ function syncDataToGoogleSheet() {
     lastCheckin: state.lastCheckin || 'Chưa điểm danh'
   };
 
-  // Bước 1: Thử Cập Nhật dòng có sẵn (PATCH)
-  const updateUrl = `${SHEETDB_API_URL}/studentName/${encodeURIComponent(state.studentName)}`;
-
-  fetch(updateUrl, {
-    method: "PATCH",
+  // Gửi trực tiếp dữ liệu dạng POST
+  fetch(SHEETDB_API_URL, {
+    method: "POST",
     headers: {
       "Accept": "application/json",
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ data: payloadData })
+    body: JSON.stringify({ data: [payloadData] })
   })
   .then(res => res.json())
-  .then(resData => {
-    // Nếu chưa có dòng học sinh này (updated == 0 hoặc bị lỗi), tự động gửi POST để tạo mới
-    if (!resData || resData.updated === 0 || resData.error) {
-      return fetch(SHEETDB_API_URL, {
-        method: "POST",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ data: [payloadData] })
-      });
-    }
-  })
-  .then(() => {
+  .then(data => {
+    console.log("Đã gửi dữ liệu thành công:", data);
     showToast();
   })
-  .catch(err => {
-    // Nếu PATCH bị lỗi do chưa có cột, gửi thẳng POST
-    fetch(SHEETDB_API_URL, {
-      method: "POST",
-      headers: {
-        "Accept": "application/json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ data: [payloadData] })
-    }).then(() => showToast());
-  });
+  .catch(err => console.error("Lỗi gửi dữ liệu:", err));
 }
 
     function showToast() {

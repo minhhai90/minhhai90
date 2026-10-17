@@ -357,29 +357,23 @@
       syncDataToGoogleSheet();
     }
 
-    // Thay URL vừa copy ở Bước 1 vào đây
+    // Dán URL Google Apps Script của bạn vào đây
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWZcqAP_RG1RDtHJ-3aLYIBZXA-tBbcVAbfP1hbNxggLJ3EE8vH5Pj-XcnKgrgifYwOw/exec"; 
 
 function syncDataToGoogleSheet() {
   if (!SCRIPT_URL || SCRIPT_URL.includes("DÁN_URL") || !state.studentName) return;
-  
-  const payload = {
-    studentName: state.studentName,
-    coins: state.coins,
-    stars: state.stars
-  };
 
-  // Dùng text/plain để vượt qua rào cản CORS của Google Apps Script khi chạy trên GitHub Pages
-  fetch(SCRIPT_URL, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { 
-      "Content-Type": "text/plain;charset=utf-8" 
-    },
-    body: JSON.stringify(payload)
-  })
-  .then(() => console.log("Đã phát lệnh gửi dữ liệu sang Google Sheet!"))
-  .catch(err => console.error("Lỗi gửi dữ liệu:", err));
+  // Đưa dữ liệu vào form ẩn
+  document.getElementById('formStudentName').value = state.studentName;
+  document.getElementById('formCoins').value = state.coins;
+  document.getElementById('formStars').value = state.stars;
+
+  // Đặt action URL cho form và tự động submit ngầm
+  const form = document.getElementById('gasForm');
+  form.action = SCRIPT_URL;
+  form.submit();
+  
+  console.log("Đã gửi dữ liệu thành công qua HTML Form!");
 }
 
     function checkNameRequired() {
@@ -614,5 +608,12 @@ function syncDataToGoogleSheet() {
     function startMemoryGame() { alert("Trò chơi lật thẻ đang được cập nhật thêm!"); }
     function startTracingMode() { alert("Chức năng tập viết đang được cập nhật thêm!"); }
   </script>
+  <!-- Form ẩn để lách qua CORS Google Apps Script -->
+<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+<form id="gasForm" action="" method="POST" target="hidden_iframe" style="display:none;">
+  <input type="hidden" name="studentName" id="formStudentName">
+  <input type="hidden" name="coins" id="formCoins">
+  <input type="hidden" name="stars" id="formStars">
+</form>
 </body>
 </html>

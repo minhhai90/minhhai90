@@ -34,8 +34,8 @@
   <div id="syncToast" class="fixed bottom-5 right-5 bg-emerald-600 text-white px-4 py-3 rounded-2xl shadow-2xl z-50 flex items-center gap-2.5 hidden toast-animate border-2 border-emerald-400">
     <span class="text-xl">☁️</span>
     <div>
-      <h5 class="font-bold text-sm">Đã cập nhật dữ liệu!</h5>
-      <p class="text-xs opacity-90">Đã đồng bộ thông tin lên Google Sheet.</p>
+      <h5 class="font-bold text-sm">Đã lưu điểm thành công!</h5>
+      <p class="text-xs opacity-90">Dữ liệu đã cập nhật lên Google Sheet.</p>
     </div>
   </div>
 
@@ -220,7 +220,7 @@
   </footer>
 
   <script>
-    // 👇 DÁN API URL CỦA SHEETDB VÀO ĐÂY (Ví dụ: "https://sheetdb.io/api/v1/abc123xyz")
+    // URL API SheetDB của bạn
     const SHEETDB_API_URL = "https://sheetdb.io/api/v1/njcjob2p6nos6"; 
 
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -378,38 +378,35 @@
       syncDataToGoogleSheet();
     }
 
-    // Đường link API SheetDB của bạn
-const SHEETDB_API_URL = "https://sheetdb.io/api/v1/njcjob2p6nos6"; 
+    // HÀM ĐỒNG BỘ ĐƠN GIẢN NGHĨA TRỰC TIẾP
+    function syncDataToGoogleSheet() {
+      if (!SHEETDB_API_URL || !state.studentName) return;
 
-function syncDataToGoogleSheet() {
-  if (!SHEETDB_API_URL || !state.studentName) return;
+      const payloadData = {
+        studentName: state.studentName,
+        coins: state.coins,
+        stars: state.stars,
+        petEnergy: state.petEnergy,
+        equippedHat: state.equippedHat || 'Chưa có',
+        mistakesCount: (state.mistakes || []).length,
+        lastCheckin: state.lastCheckin || 'Chưa điểm danh'
+      };
 
-  const payloadData = {
-    studentName: state.studentName,
-    coins: state.coins,
-    stars: state.stars,
-    petEnergy: state.petEnergy,
-    equippedHat: state.equippedHat || 'Chưa có',
-    mistakesCount: (state.mistakes || []).length,
-    lastCheckin: state.lastCheckin || 'Chưa điểm danh'
-  };
-
-  // Gửi trực tiếp dữ liệu dạng POST
-  fetch(SHEETDB_API_URL, {
-    method: "POST",
-    headers: {
-      "Accept": "application/json",
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ data: [payloadData] })
-  })
-  .then(res => res.json())
-  .then(data => {
-    console.log("Đã gửi dữ liệu thành công:", data);
-    showToast();
-  })
-  .catch(err => console.error("Lỗi gửi dữ liệu:", err));
-}
+      fetch(SHEETDB_API_URL, {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ data: [payloadData] })
+      })
+      .then(res => res.json())
+      .then(data => {
+        console.log("Đã gửi dữ liệu thành công:", data);
+        showToast();
+      })
+      .catch(err => console.error("Lỗi gửi dữ liệu:", err));
+    }
 
     function showToast() {
       const toast = document.getElementById('syncToast');
@@ -655,7 +652,7 @@ function syncDataToGoogleSheet() {
       } else { alert("Không đủ Xu!"); }
     }
 
-    /* --- TRÒ CHƠI 1: LẬT THẺ GHI NHỚ (MEMORY GAME) --- */
+    /* --- TRÒ CHƠI 1: LẬT THẺ GHI NHỚ --- */
     let memoryCards = [];
     let flippedCards = [];
     let matchedPairs = 0;
@@ -724,7 +721,7 @@ function syncDataToGoogleSheet() {
       }
     }
 
-    /* --- TRÒ CHƠI 2: TẬP VIẾT CHỮ & SỐ (TRACING CANVAS) --- */
+    /* --- TRÒ CHƠI 2: TẬP VIẾT CHỮ & SỐ --- */
     let isDrawing = false;
     let currentColor = '#3b82f6';
 
@@ -757,7 +754,6 @@ function syncDataToGoogleSheet() {
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
 
-      // Vẽ nét đứt hướng dẫn nét chữ
       ctx.font = 'bold 120px Fredoka';
       ctx.fillStyle = '#e2e8f0';
       ctx.textAlign = 'center';

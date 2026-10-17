@@ -34,8 +34,8 @@
   <div id="syncToast" class="fixed bottom-5 right-5 bg-emerald-600 text-white px-4 py-3 rounded-2xl shadow-2xl z-50 flex items-center gap-2.5 hidden toast-animate border-2 border-emerald-400">
     <span class="text-xl">☁️</span>
     <div>
-      <h5 class="font-bold text-sm">Đã lưu điểm thành công!</h5>
-      <p class="text-xs opacity-90">Dữ liệu đã cập nhật lên Google Sheet.</p>
+      <h5 class="font-bold text-sm">Đã cập nhật dữ liệu!</h5>
+      <p class="text-xs opacity-90">Đã đồng bộ thông tin lên Google Sheet.</p>
     </div>
   </div>
 
@@ -68,7 +68,7 @@
           <div>
             <h1 class="text-xl sm:text-2xl font-bold text-amber-950 leading-none">Học Vui Lớp 2</h1>
             <p class="text-xs text-amber-900 font-medium">
-              Học sinh: <span id="displayName" class="font-bold underline">Bé</span>
+              Học sinh: <span id="displayName" class="font-bold underline">Bé</span> <span id="equippedHatDisplay" class="text-lg ml-1"></span>
               <button onclick="logoutStudent()" class="ml-2 bg-red-500 hover:bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold shadow transition">
                 🚪 Đổi Tên
               </button>
@@ -146,13 +146,19 @@
       <div class="bg-white p-3.5 rounded-3xl border-2 border-indigo-200 shadow-sm">
         <h4 class="font-bold text-indigo-900 text-sm mb-2.5">🎮 Trò Chơi Giải Trí</h4>
         <div class="space-y-2">
-          <button onclick="startMemoryGame()" class="w-full bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 p-2 rounded-2xl flex items-center gap-3 text-left">
+          <button onclick="startMemoryGame()" class="w-full bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 p-2.5 rounded-2xl flex items-center gap-3 text-left">
             <span class="text-2xl">🃏</span>
-            <span class="font-bold text-indigo-950 text-xs">Lật Thẻ Ghi Nhớ</span>
+            <div>
+              <span class="font-bold text-indigo-950 text-xs block">Lật Thẻ Ghi Nhớ</span>
+              <span class="text-[10px] text-indigo-600">Luyện trí nhớ & Nhận xu</span>
+            </div>
           </button>
-          <button onclick="startTracingMode()" class="w-full bg-purple-50 hover:bg-purple-100 border border-purple-200 p-2 rounded-2xl flex items-center gap-3 text-left">
+          <button onclick="startTracingMode()" class="w-full bg-purple-50 hover:bg-purple-100 border border-purple-200 p-2.5 rounded-2xl flex items-center gap-3 text-left">
             <span class="text-2xl">✍️</span>
-            <span class="font-bold text-purple-950 text-xs">Tập Viết Chữ & Số</span>
+            <div>
+              <span class="font-bold text-purple-950 text-xs block">Tập Viết Chữ & Số</span>
+              <span class="text-[10px] text-purple-600">Bảng vẽ nét chữ sinh động</span>
+            </div>
           </button>
         </div>
       </div>
@@ -372,37 +378,55 @@
       syncDataToGoogleSheet();
     }
 
+    // HÀM ĐỒNG BỘ CẬP NHẬT 1 DÒNG TRÊN GOOGLE SHEET QUA SHEETDB
     function syncDataToGoogleSheet() {
       if (!SHEETDB_API_URL || SHEETDB_API_URL.includes("DÁN_API") || !state.studentName) return;
 
-      const payload = {
-        data: [
-          {
-            studentName: state.studentName,
-            coins: state.coins,
-            stars: state.stars
-          }
-        ]
+      const payloadData = {
+        studentName: state.studentName,
+        coins: state.coins,
+        stars: state.stars,
+        petEnergy: state.petEnergy,
+        equippedHat: state.equippedHat || 'Chưa có',
+        mistakesCount: (state.mistakes || []).length,
+        lastCheckin: state.lastCheckin || 'Chưa điểm danh'
       };
 
-      fetch(SHEETDB_API_URL, {
-        method: "POST",
+      // Thử dùng PATCH để cập nhật dòng có sẵn của học sinh
+      const updateUrl = `${SHEETDB_API_URL}/studentName/${encodeURIComponent(state.studentName)}`;
+
+      fetch(updateUrl, {
+        method: "PATCH",
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ data: payloadData })
       })
-      .then(response => response.json())
-      .then(data => {
-        console.log("Đã đồng bộ thành công sang Google Sheet!", data);
-        const toast = document.getElementById('syncToast');
-        if (toast) {
-          toast.classList.remove('hidden');
-          setTimeout(() => { toast.classList.add('hidden'); }, 3000);
+      .then(res => res.json())
+      .then(resData => {
+        // Nếu dòng chưa tồn tại (updated: 0), gửi POST để tạo dòng mới
+        if (resData.updated === 0) {
+          fetch(SHEETDB_API_URL, {
+            method: "POST",
+            headers: {
+              "Accept": "application/json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ data: [payloadData] })
+          });
         }
+        showToast();
       })
-      .catch(error => console.error("Lỗi đồng bộ SheetDB:", error));
+      .catch(err => console.error("Lỗi đồng bộ:", err));
+    }
+
+    function showToast() {
+      const toast = document.getElementById('syncToast');
+      if (toast) {
+        toast.classList.remove('hidden');
+        setTimeout(() => { toast.classList.add('hidden'); }, 3000);
+      }
     }
 
     function checkNameRequired() {
@@ -446,6 +470,9 @@
       document.getElementById('coinCount').innerText = `${state.coins} Xu`;
       document.getElementById('petEnergyText').innerText = `${state.petEnergy}%`;
       document.getElementById('mistakeCountText').innerText = (state.mistakes || []).length;
+      
+      const hatIcon = state.equippedHat === 'hat_grad' ? '🎓' : (state.equippedHat === 'hat_crown' ? '👑' : '');
+      document.getElementById('equippedHatDisplay').innerText = hatIcon;
     }
 
     function claimDailyReward() {
@@ -631,11 +658,159 @@
     }
     function closeShop() { document.getElementById('shopModal').classList.add('hidden'); }
     function buyShopItem(id, price) {
-      if (state.coins >= price) { state.coins -= price; state.equippedHat = id; saveData(); updateUI(); playSound('correct'); alert("Đã mua thành công!"); }
-      else { alert("Không đủ Xu!"); }
+      if (state.coins >= price) { 
+        state.coins -= price; 
+        state.equippedHat = id; 
+        saveData(); updateUI(); playSound('correct'); alert("Đã mua thành công!"); 
+      } else { alert("Không đủ Xu!"); }
     }
-    function startMemoryGame() { alert("Trò chơi lật thẻ đang được cập nhật thêm!"); }
-    function startTracingMode() { alert("Chức năng tập viết đang được cập nhật thêm!"); }
+
+    /* --- TRÒ CHƠI 1: LẬT THẺ GHI NHỚ (MEMORY GAME) --- */
+    let memoryCards = [];
+    let flippedCards = [];
+    let matchedPairs = 0;
+
+    function startMemoryGame() {
+      const icons = ['🍎', '🐶', '🚗', '⭐', '🎈', '🐱'];
+      const deck = shuffle([...icons, ...icons]);
+      memoryCards = deck; flippedCards = []; matchedPairs = 0;
+
+      const app = document.getElementById('appContainer');
+      app.innerHTML = `
+        <div class="bg-white rounded-3xl p-5 border-2 border-indigo-200 shadow-md">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-indigo-900 text-base">🃏 Lật Thẻ Ghi Nhớ</h3>
+            <button onclick="goHome()" class="text-xs bg-gray-100 text-gray-600 font-bold px-3 py-1 rounded-xl">Quay lại</button>
+          </div>
+          <p class="text-xs text-gray-600 mb-4">Hãy lật tìm 2 thẻ hình giống nhau để nhận ngay +5 Xu thưởng!</p>
+          <div class="grid grid-cols-4 gap-2.5 max-w-xs mx-auto" id="memoryGrid">
+            ${deck.map((icon, idx) => `
+              <button onclick="flipMemoryCard(${idx}, '${icon}')" id="card-${idx}" class="h-20 bg-indigo-500 hover:bg-indigo-600 rounded-2xl text-3xl flex items-center justify-center shadow-md transition transform active:scale-95">
+                ❓
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function flipMemoryCard(idx, icon) {
+      if (flippedCards.length >= 2 || flippedCards.some(c => c.idx === idx)) return;
+      
+      const cardBtn = document.getElementById(`card-${idx}`);
+      cardBtn.innerText = icon;
+      cardBtn.classList.remove('bg-indigo-500');
+      cardBtn.classList.add('bg-amber-200');
+      
+      flippedCards.push({ idx, icon });
+
+      if (flippedCards.length === 2) {
+        if (flippedCards[0].icon === flippedCards[1].icon) {
+          playSound('correct');
+          matchedPairs++;
+          flippedCards = [];
+          if (matchedPairs === 6) {
+            setTimeout(() => {
+              state.coins += 5; saveData(); updateUI();
+              if (window.confetti) confetti({ particleCount: 50, spread: 60 });
+              alert("🎉 Bé giỏi quá! Hoàn thành trò chơi lật thẻ và nhận được 5 Xu thưởng!");
+              startMemoryGame();
+            }, 400);
+          }
+        } else {
+          playSound('wrong');
+          setTimeout(() => {
+            flippedCards.forEach(c => {
+              const btn = document.getElementById(`card-${c.idx}`);
+              if(btn) {
+                btn.innerText = '❓';
+                btn.classList.remove('bg-amber-200');
+                btn.classList.add('bg-indigo-500');
+              }
+            });
+            flippedCards = [];
+          }, 800);
+        }
+      }
+    }
+
+    /* --- TRÒ CHƠI 2: TẬP VIẾT CHỮ & SỐ (TRACING CANVAS) --- */
+    let isDrawing = false;
+    let currentColor = '#3b82f6';
+
+    function startTracingMode() {
+      const app = document.getElementById('appContainer');
+      app.innerHTML = `
+        <div class="bg-white rounded-3xl p-5 border-2 border-purple-200 shadow-md text-center">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-purple-900 text-base">✍️ Bảng Tập Viết Lớp 2</h3>
+            <button onclick="goHome()" class="text-xs bg-gray-100 text-gray-600 font-bold px-3 py-1 rounded-xl">Quay lại</button>
+          </div>
+          <div class="flex justify-center gap-2 mb-3">
+            <button onclick="currentColor='#ef4444'" class="w-7 h-7 rounded-full bg-red-500 border-2 border-white shadow"></button>
+            <button onclick="currentColor='#3b82f6'" class="w-7 h-7 rounded-full bg-blue-500 border-2 border-white shadow"></button>
+            <button onclick="currentColor='#10b981'" class="w-7 h-7 rounded-full bg-emerald-500 border-2 border-white shadow"></button>
+            <button onclick="currentColor='#8b5cf6'" class="w-7 h-7 rounded-full bg-purple-500 border-2 border-white shadow"></button>
+            <button onclick="clearCanvas()" class="text-xs bg-amber-100 text-amber-800 font-bold px-2.5 py-1 rounded-xl">🧹 Xóa Bảng</button>
+          </div>
+          <div class="relative inline-block border-4 border-amber-300 rounded-2xl overflow-hidden bg-amber-50 shadow-inner">
+            <canvas id="tracingCanvas" width="300" height="260" class="cursor-crosshair"></canvas>
+          </div>
+        </div>
+      `;
+
+      setTimeout(initTracingCanvas, 100);
+    }
+
+    function initTracingCanvas() {
+      const canvas = document.getElementById('tracingCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      // Vẽ nét đứt hướng dẫn nét chữ
+      ctx.font = 'bold 120px Fredoka';
+      ctx.fillStyle = '#e2e8f0';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('Aa 12', canvas.width / 2, canvas.height / 2);
+
+      function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
+      }
+
+      function startDraw(e) {
+        isDrawing = true;
+        const pos = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+      }
+
+      function draw(e) {
+        if (!isDrawing) return;
+        const pos = getPos(e);
+        ctx.lineWidth = 6;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = currentColor;
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+      }
+
+      function stopDraw() { isDrawing = false; }
+
+      canvas.addEventListener('mousedown', startDraw);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', stopDraw);
+      canvas.addEventListener('touchstart', startDraw);
+      canvas.addEventListener('touchmove', draw);
+      canvas.addEventListener('touchend', stopDraw);
+    }
+
+    function clearCanvas() {
+      startTracingMode();
+    }
   </script>
 </body>
 </html>

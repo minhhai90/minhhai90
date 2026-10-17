@@ -194,12 +194,20 @@
     </div>
   </div>
 
+  <!-- FORM ẨN ĐỂ ĐỒNG BỘ DỮ LIỆU VỚI GOOGLE SHEET -->
+  <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+  <form id="gasForm" action="" method="POST" target="hidden_iframe" style="display:none;">
+    <input type="hidden" name="studentName" id="formStudentName">
+    <input type="hidden" name="coins" id="formCoins">
+    <input type="hidden" name="stars" id="formStars">
+  </form>
+
   <footer class="mt-auto py-3 text-center text-xs font-semibold text-amber-800/80 bg-amber-200/50 border-t">
     © Phát triển dành riêng cho Học sinh Lớp 2
   </footer>
 
   <script>
-    // 👇 DÁN URL GOOGLE APPS SCRIPT VÀO ĐÂY (VÍ DỤ: "https://script.google.com/macros/s/.../exec")
+    // 👇 DÁN URL GOOGLE APPS SCRIPT CỦA BẠN VÀO ĐÂY (VÍ DỤ: "https://script.google.com/macros/s/.../exec")
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWZcqAP_RG1RDtHJ-3aLYIBZXA-tBbcVAbfP1hbNxggLJ3EE8vH5Pj-XcnKgrgifYwOw/exec"; 
 
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -357,24 +365,20 @@
       syncDataToGoogleSheet();
     }
 
-    // Dán URL Google Apps Script của bạn vào đây
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWZcqAP_RG1RDtHJ-3aLYIBZXA-tBbcVAbfP1hbNxggLJ3EE8vH5Pj-XcnKgrgifYwOw/exec"; 
+    function syncDataToGoogleSheet() {
+      if (!SCRIPT_URL || SCRIPT_URL.includes("DÁN_URL") || !state.studentName) return;
 
-function syncDataToGoogleSheet() {
-  if (!SCRIPT_URL || SCRIPT_URL.includes("DÁN_URL") || !state.studentName) return;
+      // Đưa dữ liệu vào form ẩn và tự động submit
+      document.getElementById('formStudentName').value = state.studentName;
+      document.getElementById('formCoins').value = state.coins;
+      document.getElementById('formStars').value = state.stars;
 
-  // Đưa dữ liệu vào form ẩn
-  document.getElementById('formStudentName').value = state.studentName;
-  document.getElementById('formCoins').value = state.coins;
-  document.getElementById('formStars').value = state.stars;
-
-  // Đặt action URL cho form và tự động submit ngầm
-  const form = document.getElementById('gasForm');
-  form.action = SCRIPT_URL;
-  form.submit();
-  
-  console.log("Đã gửi dữ liệu thành công qua HTML Form!");
-}
+      const form = document.getElementById('gasForm');
+      form.action = SCRIPT_URL;
+      form.submit();
+      
+      console.log("Đã phát lệnh đồng bộ sang Google Sheet!");
+    }
 
     function checkNameRequired() {
       if (!state.firstName) {
@@ -608,12 +612,5 @@ function syncDataToGoogleSheet() {
     function startMemoryGame() { alert("Trò chơi lật thẻ đang được cập nhật thêm!"); }
     function startTracingMode() { alert("Chức năng tập viết đang được cập nhật thêm!"); }
   </script>
-  <!-- Form ẩn để lách qua CORS Google Apps Script -->
-<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
-<form id="gasForm" action="" method="POST" target="hidden_iframe" style="display:none;">
-  <input type="hidden" name="studentName" id="formStudentName">
-  <input type="hidden" name="coins" id="formCoins">
-  <input type="hidden" name="stars" id="formStars">
-</form>
 </body>
 </html>
